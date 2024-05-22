@@ -1,6 +1,3 @@
-/difference.jpg
-/GATfiltered.jpg
-/modified.jpg
-/muis1.jpg
-/naivefiltered.jpg
-/__pycache__
+/*.jpg
+**/__pycache__
+*.png
