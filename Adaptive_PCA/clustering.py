@@ -11,8 +11,9 @@ class Cluster:
         return f"Cluster at {repr(self.center)} containing indices {repr(self.indices)}."
     def merge(self, other):
         selflen, otherlen = len(self.indices), len(other.indices)
-        self.center = self.center * selflen / (selflen + otherlen) + other.center * otherlen / (selflen + otherlen)
-        self.indices.extend(other.indices)
+        self.center = (self.center * selflen + other.center * otherlen) / (selflen + otherlen)
+        self.indices = self.indices + other.indices
+        # self.indices.extend(other.indices)
 
 def k_means(vectors, k, n, ret_clusters=False):
     # new sum, count, old avg

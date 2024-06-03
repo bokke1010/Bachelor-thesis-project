@@ -18,6 +18,7 @@ def maxAttenuation(sigma, Rx, beta = 0.7):
 
     space = np.linspace(0,1,100)
     # Assume costfunction is automatically vectorizeable
+    # (as it seems to be, luckily!)
     max_index = np.argmax(costfunction(space))
 
     return space[max_index]
@@ -28,8 +29,8 @@ def wiener_filter(data):
         bandwidth = lpaici.Intersection_of_Intervals(x, data)
         Rx = autocovar(x, bandwidth, data)
 
+        # I still don't understand why this is a filter?
         attenuation = maxAttenuation(sigma, Rx)
-        # v should be a filter
         hs = 1 - attenuation * sigma * sigma / Rx
 
         filtered_data[x] = hs * data[x]

@@ -28,6 +28,7 @@ window_stride = 2
 # I = Poisson(real_I) + N(0, sigma)
 # Estimated image normal noise deviation
 sigma = 2
+GAT.anacombetransform.sigma = sigma
 
 # The largest allowed distance between clusters for them to be merged.
 clustering_threshold = 3000
@@ -36,17 +37,18 @@ clustering_threshold = 3000
 # dominant dimensions for PCA filtering.
 mu = 1.1
 
-# Confidence interval theshold parameter
-tau = 0.6
-
 # Adaptive clustering coefficients to more
 # easily cluster large clusters together.
 adaptive_clustering.kappa = 0.7
 
-GAT.anacombetransform.sigma = sigma
-lpaici.sigma = sigma
+# Confidence interval theshold parameter
+tau = 0.6
 lpaici.tau = tau
-wiener_filter.sigma = sigma
+
+# These are the same sigma, and separate from the image model sigma
+coefficients_sigma = 0.8
+lpaici.sigma = coefficients_sigma
+wiener_filter.sigma = coefficients_sigma
 
 def denoise(image):
     # Expand image 8 pixels somehow?
@@ -76,7 +78,6 @@ def denoise(image):
             for cluster in clusters:
                 mergeable_clusters = [clustering.Cluster(blocks[i], [i]) for i in cluster.indices]
                 reclustered.extend(adaptive_clustering.clustering(mergeable_clusters, clustering_threshold))
-            print(len(reclustered))
 
             for cluster in reclustered:
                 Am = np.stack([blocks[i] for i in cluster.indices])
@@ -86,18 +87,24 @@ def denoise(image):
                 # s = sqrt(Na xi_k) => xi_k = s^2 / Na
                 xi = S**2 / Na
                 gamma = C / Na
-                xi_r = sigma**2 * (1 + np.sqrt(gamma))**2
+                xi_r = coefficients_sigma**2 * (1 + np.sqrt(gamma))**2
 
-                R = sum(xi[k] > mu * xi_r for k in range(min(C,Na)))
+                dominant_dimentions = 0
+                for i in range(len(xi)):
+                    if xi[i] < mu * xi_r:
+                        break
+                    dominant_dimentions += 1
+                # dominant_dimentions = sum(xi[k] > mu * xi_r for k in range(min(C,Na)))
 
-                extracted_coefficients = xi[:R]
+                extracted_coefficients = xi[:dominant_dimentions]
 
+                # print(f"{dominant_dimentions} / {len(xi)} coefficients significant")
                 filtered_coefficients = wiener_filter.wiener_filter(extracted_coefficients)
 
 
                 Ns = np.sqrt(Na * filtered_coefficients)
                 # Recompose matrix.
-                Ar = np.dot(U[:,:R] * Ns, Vh[:R,:])
+                Ar = np.dot(U[:,:dominant_dimentions] * Ns, Vh[:dominant_dimentions,:])
 
                 for column in range(Na):
                     block_index = cluster.indices[column]
