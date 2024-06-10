@@ -7,7 +7,7 @@ from Remove_diagonal.wavelet import remove_diagonal
 
 import numpy as np
 
-use_multiprocessing = False
+use_multiprocessing = True
 if use_multiprocessing:
     from multiprocessing import Pool
 
@@ -112,31 +112,32 @@ def denoise(image):
     W = GAT.anacombetransform.inv_anacombe(reconstructed_image)
     return W
 
-def find_fingerprint(images):
-    for image in images:
-        denoise(image)
-
-if __name__ == '__main__':
-    # image = load_image("Sprite-0001.png")
-    image = load_image("muis_small.png")
-    clean_image = np.empty_like(image)
+def denoise_full(image):
     residue = np.empty_like(image)
-    denoised = None
-    if use_multiprocessing:
-        with Pool(3) as p:
-            denoised = p.map(denoise, [image[:,:,channel] for channel in range(3)])
-    else:
-        denoised = [denoise(image[:,:,channel]) for channel in range(3)]
-
 
     for channel in range(3):
-        current_channel = image[:,:,channel]
-        clean_image[:,:,channel] = denoised[channel]
-        residue[:,:,channel] = current_channel - denoised[channel]
-
-    save_image(clean_image, "denoised_preIMP.png")
+        residue[:,:,channel] = image[:,:,channel] - denoise(image[:,:,channel])
 
     residue_ZM = zero_mean(residue)
     residue_ZM_RD = remove_diagonal(residue_ZM)
+    return (image, residue_ZM_RD)
 
-    save_image(128 + residue_ZM, "noiseZM.png")
+
+def find_fingerprint(images):
+    top = np.zeros_like(images[0])
+    bottom = np.zeros_like(images[0])
+
+    with Pool(14) as p:
+        for (image, residue) in p.imap_unordered(denoise_full, images):
+            top += np.multiply(image, residue)
+            bottom += np.multiply(image, image)
+    K = top / bottom
+    fingerprint = np.sum(np.multiply(K, image) for image in images) / len(images)
+    save_image(fingerprint + 128)
+    # for i, image in enumerate(images):
+
+
+if __name__ == '__main__':
+    image = load_image("muis_small.png")
+    
+    find_fingerprint([image])

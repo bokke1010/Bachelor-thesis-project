@@ -23,6 +23,8 @@ def k_means(vectors, k, n, ret_clusters=False):
     for _ in range(n):
         # Find nearest cluster
         for vector in vectors:
+            # Find i such that means[i] - vector has minimal magnitude
+            # This line efficiently calculates all k inproducts at once
             i = np.argmin(np.sum(np.square(means - vector), axis=1))
             data[i] += vector
             count[i] += 1
