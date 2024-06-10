@@ -17,19 +17,23 @@ class Cluster:
 def dist2(a: np.array, b: np.array):
     return np.inner(a - b, a - b)
 
+vdist = np.vectorize(dist2, signature='(n),(n)->()')
 def k_means(vectors, k, n, ret_clusters=False):
     # new sum, count, old avg
     vlen = vectors.shape[1]
     means = vectors[np.random.choice(vectors.shape[0], k, replace=False), :]
-    data = np.zeros(shape=(k, vlen+1))
-    vdist = np.vectorize(dist2, signature='(n),(n)->()')
+    data = np.zeros(shape=(k, vlen))
+    count = np.zeros(k)
     for i in range(n):
         # Find nearest cluster
         for vector in vectors:
             i = np.argmin(vdist(means, vector))
-            data[i] += np.append(vector, 1)
-        means = data[:,0:vlen] / data[:,vlen, None]
+            data[i] += vector
+            count[i] += 1
+
+        means = data / count[:,None]
         data.fill(0)
+        count.fill(0)
     if not ret_clusters:
         return means
     

@@ -6,7 +6,10 @@ from tools.np_imageload import load_image, save_image, save_image_grayscale
 from Remove_diagonal.wavelet import remove_diagonal
 
 import numpy as np
-from multiprocessing import Pool
+
+use_multiprocessing = False
+if use_multiprocessing:
+    from multiprocessing import Pool
 
 large_window_size = 128
 window_size = 8
@@ -41,7 +44,6 @@ def denoise(image):
     # Expand image 8 pixels somehow?
 
     Image_v = GAT.anacombetransform.anacombe(image)
-    print(Image_v.dtype)
 
     v_windows, h_windows = Image_v.shape
     v_windows = (v_windows + large_window_size - 1) // large_window_size
@@ -85,9 +87,7 @@ def denoise(image):
 
                 extracted_coefficients = xi[:dominant_dimentions]
 
-                # print(f"{dominant_dimentions} / {len(xi)} coefficients significant")
                 filtered_coefficients = wiener_filter.wiener_filter(extracted_coefficients)
-
 
                 Ns = np.sqrt(Na * filtered_coefficients)
                 # Recompose matrix.
@@ -112,6 +112,9 @@ def denoise(image):
     W = GAT.anacombetransform.inv_anacombe(reconstructed_image)
     return W
 
+def find_fingerprint(images):
+    for image in images:
+        denoise(image)
 
 if __name__ == '__main__':
     # image = load_image("Sprite-0001.png")
@@ -119,8 +122,12 @@ if __name__ == '__main__':
     clean_image = np.empty_like(image)
     residue = np.empty_like(image)
     denoised = None
-    with Pool(3) as p:
-        denoised = p.map(denoise, [image[:,:,channel] for channel in range(3)])
+    if use_multiprocessing:
+        with Pool(3) as p:
+            denoised = p.map(denoise, [image[:,:,channel] for channel in range(3)])
+    else:
+        denoised = [denoise(image[:,:,channel]) for channel in range(3)]
+
 
     for channel in range(3):
         current_channel = image[:,:,channel]
