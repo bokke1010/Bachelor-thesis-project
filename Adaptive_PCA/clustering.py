@@ -1,5 +1,4 @@
 from random import sample
-from vector import dist2
 import numpy as np
 
 class Cluster:
@@ -14,6 +13,9 @@ class Cluster:
         self.center = (self.center * selflen + other.center * otherlen) / (selflen + otherlen)
         self.indices = self.indices + other.indices
         # self.indices.extend(other.indices)
+
+def dist2(a: np.array, b: np.array):
+    return np.inner(a - b, a - b)
 
 def k_means(vectors, k, n, ret_clusters=False):
     # new sum, count, old avg

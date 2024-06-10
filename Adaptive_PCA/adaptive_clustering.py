@@ -1,13 +1,12 @@
-from vector import norm2_2
 from Adaptive_PCA.clustering import Cluster
 import numpy as np
 
 kappa = 0.7
 def distance(A, B):
     if len(A.indices) > 200 and len(B.indices) > 200:
-        return norm2_2(A.center - B.center) / kappa
+        return np.inner(A.center - B.center, A.center - B.center) / kappa
     else:
-        return norm2_2(A.center - B.center)
+        return np.inner(A.center - B.center, A.center - B.center)
 
 
 def clustering(clusters, threshold = 100):

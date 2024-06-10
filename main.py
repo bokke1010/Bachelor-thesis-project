@@ -1,25 +1,12 @@
 import GAT.anacombetransform
 from Adaptive_PCA import vectorize, clustering, adaptive_clustering
 from Wiener_filter import lpaici, wiener_filter
-from zero_mean import zero_mean
+from Zero_mean.zero_mean import zero_mean
+from tools.np_imageload import load_image, save_image, save_image_grayscale
+from Remove_diagonal.wavelet import remove_diagonal
 
-from PIL import Image
 import numpy as np
 from multiprocessing import Pool
-
-def load_image( infilename ) :
-    img = Image.open( infilename )
-    img.load()
-    data = np.asarray( img, dtype="int32" )
-    return data
-
-def save_image( npdata, outfilename ) :
-    img = Image.fromarray( np.asarray( np.clip(npdata,0,255), dtype="uint8"), "RGB" )
-    img.save( outfilename )
-
-def save_image_grayscale( npdata, outfilename ) :
-    img = Image.fromarray( np.asarray( np.clip(npdata,0,255), dtype="uint8"), "L" )
-    img.save( outfilename )
 
 large_window_size = 128
 window_size = 8
@@ -54,7 +41,7 @@ def denoise(image):
     # Expand image 8 pixels somehow?
 
     Image_v = GAT.anacombetransform.anacombe(image)
-
+    print(Image_v.dtype)
 
     v_windows, h_windows = Image_v.shape
     v_windows = (v_windows + large_window_size - 1) // large_window_size
@@ -140,7 +127,9 @@ if __name__ == '__main__':
         clean_image[:,:,channel] = denoised[channel]
         residue[:,:,channel] = current_channel - denoised[channel]
 
-    save_image(clean_image, "denoised.png")
-    # save_image(image, "denoised_full.png")
-    # residue_ZM = zero_mean(residue)
-    save_image(128 + residue, "noise.png")
+    save_image(clean_image, "denoised_preIMP.png")
+
+    residue_ZM = zero_mean(residue)
+    residue_ZM_RD = remove_diagonal(residue_ZM)
+
+    save_image(128 + residue_ZM, "noiseZM.png")
