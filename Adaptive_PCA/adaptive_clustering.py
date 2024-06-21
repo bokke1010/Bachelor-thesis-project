@@ -12,8 +12,9 @@ def distance(A, B):
 def clustering(clusters, threshold = 100):
     a, b = 0, 1
     high = len(clusters)
+    if high < 2:
+        return clusters
     while b != high:
-
         A, B = clusters[a], clusters[b]
         if distance(A, B) < threshold:
             A.merge(B)

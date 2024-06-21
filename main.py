@@ -3,17 +3,17 @@ from Adaptive_PCA import vectorize, clustering, adaptive_clustering
 from Wiener_filter import lpaici, wiener_filter
 from Zero_mean.zero_mean import zero_mean
 from tools.np_imageload import load_image, save_image, save_image_grayscale
+from tools.stat import crosscorr
+from Correlation.correlationenergy import peak_correlation_energy, signed_peak_correlation_energy
 from Remove_diagonal.wavelet import remove_diagonal
+from multiprocessing import Pool
 
 import numpy as np
 
-use_multiprocessing = True
-if use_multiprocessing:
-    from multiprocessing import Pool
-
-large_window_size = 128
+large_window_size = 252
 window_size = 8
 window_stride = 2
+thread_count = 8
 
 # I = Poisson(real_I) + N(0, sigma)
 # Estimated image normal noise deviation
@@ -124,20 +124,31 @@ def denoise_full(image):
 
 
 def find_fingerprint(images):
-    top = np.zeros_like(images[0])
-    bottom = np.zeros_like(images[0])
+    top = np.zeros_like(images[0], dtype='float64')
+    bottom = np.zeros_like(images[0], dtype='float64')
 
-    with Pool(14) as p:
+    with Pool(thread_count) as p:
         for (image, residue) in p.imap_unordered(denoise_full, images):
             top += np.multiply(image, residue)
             bottom += np.multiply(image, image)
-    K = top / bottom
+
+    # for (image, residue) in map(denoise_full, images):
+    #     top += np.multiply(image, residue)
+    #     bottom += np.multiply(image, image) # Bottom can be zero, what then?
+    
+    K = np.divide(top, bottom, out=np.zeros_like(top), where=(bottom!=0))
     fingerprint = np.sum(np.multiply(K, image) for image in images) / len(images)
-    save_image(fingerprint + 128)
+    # save_image(fingerprint + 128)
+    return fingerprint
     # for i, image in enumerate(images):
 
+def normalizing_factor(fingerprint, residue):
+    #TODO: figure this out
+    pass
 
-if __name__ == '__main__':
-    image = load_image("muis_small.png")
-    
-    find_fingerprint([image])
+def test_fingerprint_SPE(fingerprint, residue):
+    # How to determine omega
+    return peak_correlation_energy(fingerprint, residue, [(0,0)])
+
+def test_fingerprint_SPCE(fingerprint, residue):
+    return signed_peak_correlation_energy(fingerprint, residue, [(0,0)])
