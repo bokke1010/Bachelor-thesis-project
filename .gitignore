@@ -3,3 +3,4 @@
 *.png
 !muis_small.png
 *.npy
+*.pstats

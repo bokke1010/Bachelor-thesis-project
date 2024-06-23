@@ -17,7 +17,7 @@ def circular_cross_correlation_2d(W, R, x, y):
 def peak_correlation_energy(W, R, omega):
     n, nc = W.shape, R.shape
     assert n == nc
-    top = circular_cross_correlation_2d(W,R,0)
+    top = circular_cross_correlation_2d(W, R, 0, 0)
     total = 0
     for y in range(n[0]):
         for x in range(n[1]):

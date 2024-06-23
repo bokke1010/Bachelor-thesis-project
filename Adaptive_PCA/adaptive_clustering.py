@@ -2,11 +2,10 @@ from Adaptive_PCA.clustering import Cluster
 import numpy as np
 
 kappa = 0.7
+kapfac = 1 / kappa
 def distance(A, B):
-    if len(A.indices) > 200 and len(B.indices) > 200:
-        return np.inner(A.center - B.center, A.center - B.center) / kappa
-    else:
-        return np.inner(A.center - B.center, A.center - B.center)
+    base_distance = np.inner(A.center - B.center, A.center - B.center)
+    return base_distance * kapfac if min(len(A.indices), len(B.indices)) > 200 else base_distance 
 
 
 def clustering(clusters, threshold = 100):

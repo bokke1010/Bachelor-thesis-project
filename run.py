@@ -1,32 +1,120 @@
 import main
 import os
 import numpy as np
+import sys
+import os
+from tools.np_imageload import load_image, save_image, save_image_grayscale
 
-if __name__ == '__main__':
-    image = main.load_image("muis_small.png")
-    
-    mode = "Extract"
-    image_path = "B:\\Images PRNU\\Onderzoek naar foto-video-vergelijkingenlars\\Onderzoek naar foto-video-vergelijkingen\\All Images\\iPhone 8 Plus\\iPhone8Plus_Photos\\iPhone8Plus_natural_noHDR"
-    extension = ").JPG"
+def run(mode, args):    
+    # Modes is one of "Extract", "Fingerprint", "Match"
 
+    if mode in ["Help", "help", "--help", "-h"]:
+        print(
+            """This script can extract PRNU noise residues, compile a fingerprint and test images against a fingerprint.
+Usage:
+run.py Extract [image_folder] [extension] [residue_output_folder]
+    Will extract the noise residue from all files in image folder and place them into identically named .npy files in residue output folder.
+    Only images that end with extension will be used.\n
+run.py Fingerprint [image_folder] [extension] [residue_folder] [fingerprint_path]
+    Will compile the images and residues given by image_folder and residue_folder into a fingerprint that will be sent to fingerprint_path.
+    Only images that end with extension will be used.\n
+run.py Match [image_path] [fingerprint_path]
+    Will calculate the PCE between the image noise residue and the fingerprint.
+            """
+        )
 
-    if mode == "Extract":
+    elif mode == "Extract":
+
+        if len(args) < 3:
+            print("Extract mode must have an input folder path, file extension and output folder path argument.\nFile extention may include additional characters to filter files.")
+            return
+
+        image_path = args[0]
+        extension = args[1]
+        residue_path = args[2]
+
+        if not os.path.isdir(image_path):
+            print("Given input path is not a valid directory.")
+
+        if not os.path.isdir(residue_path):
+            print("Given output path is not a valid directory.")
+
         images = []
+        filenames = []
         with os.scandir(image_path) as it:
             for entry in it:
                 if entry.is_file and entry.name.endswith(extension):
-                    images.append(main.load_image(entry.path))
+                    images.append(load_image(entry.path))
+                    filenames.append(os.path.join(residue_path, entry.name.split('.')[0] + ".npy"))
 
-        fingerprint = main.find_fingerprint(images[:4])
-        with open('fingerprint.npy', 'wb') as f:
-            np.save(f, fingerprint)
+        fingerprint = main.extract_residues(images, filenames, True)
+        
 
-    if mode == "Match":
+    elif mode == "Fingerprint":
+        if len(args) < 4:
+            print("Fingerprint mode must have an image input folder path, extention, residue input folder path and output file path argument.\nFile extention may include additional characters to filter files.")
+            return
+
+        image_path = args[0]
+        image_extension = args[1]
+        residue_path = args[2]
+        fingerprint_path = args[3]
+
+        if not os.path.isdir(image_path):
+            print("Given image path is not a valid directory.")
+
+        if not os.path.isdir(image_path):
+            print("Given residue path is not a valid directory.")
+        
+        # if not os.path.isfile(fingerprint):
+        #     print("Given output path is not a valid filepath.")
+
+        images = []
+        residues = []
+        with os.scandir(image_path) as it:
+            for entry in it:
+                if entry.is_file and entry.name.endswith(image_extension):
+                    images.append(load_image(entry.path))
+
+        with os.scandir(residue_path) as it:
+            for entry in it:
+                if entry.is_file and entry.name.endswith(".npy"):
+                    with open(entry.path, "rb") as f:
+                        residues.append(np.load(f))
+
+        fingerprint = main.find_fingerprint(images, residues)
+
+        with open(fingerprint_path, "wb") as f:
+            fingerprint = np.save(f, fingerprint)
+
+
+        # main.find_fingerprint(images=, residues=)
+
+    elif mode == "Match":
+        if len(args) < 2:
+            print("Match mode must have an image path and fingerprint path argument.")
+            return
+
+        image_path = args[0]
+        fingerprint_path = args[1]
+
         fingerprint = None
-        with open('fingerprint.npy', 'rb') as f:
+        with open(fingerprint_path, 'rb') as f:
             fingerprint = np.load(f)
 
-        image = main.load_image(image_path)
-        (residue, _) = main.denoise_full(image)
+
+
+        residue = None
+        if image_path.endswith(".npy"):
+            with open(image_path, "rb") as f:
+                residue = np.load(f)
+        else:
+            image = load_image(image_path)
+            (residue, _) = main.denoise_full((0, image))
         corr = main.test_fingerprint_SPE(fingerprint, residue)
         print(corr)
+    else:
+        print("mode must be one of \"Help\", \"Extract\", \"Fingerprint\" or \"Match\".")
+
+if __name__ == '__main__':
+    run(sys.argv[1], sys.argv[2:])

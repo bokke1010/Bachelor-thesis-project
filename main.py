@@ -2,7 +2,6 @@ import GAT.anacombetransform
 from Adaptive_PCA import vectorize, clustering, adaptive_clustering
 from Wiener_filter import lpaici, wiener_filter
 from Zero_mean.zero_mean import zero_mean
-from tools.np_imageload import load_image, save_image, save_image_grayscale
 from tools.stat import crosscorr
 from Correlation.correlationenergy import peak_correlation_energy, signed_peak_correlation_energy
 from Remove_diagonal.wavelet import remove_diagonal
@@ -13,7 +12,7 @@ import numpy as np
 large_window_size = 252
 window_size = 8
 window_stride = 2
-thread_count = 8
+max_thread_count = 13
 
 # I = Poisson(real_I) + N(0, sigma)
 # Estimated image normal noise deviation
@@ -21,7 +20,7 @@ sigma = 2
 GAT.anacombetransform.sigma = sigma
 
 # The largest allowed distance between clusters for them to be merged.
-clustering_threshold = 3000
+clustering_threshold = 320
 
 # Noise dimention threshold multiplier used in determining
 # dominant dimensions for PCA filtering.
@@ -57,19 +56,18 @@ def denoise(image):
 
     for base_x in range(h_windows):
         for base_y in range(v_windows):
-            print(f"Processing large window {base_x+1}/{h_windows}, {base_y+1}/{v_windows}.")
+            print(f"Processing large window x: {base_x+1}/{h_windows}, y: {base_y+1}/{v_windows}")
 
             blocks = vectorize.vectorize(Image_v[base_y * large_window_size:base_y * large_window_size + large_window_size,base_x * large_window_size:base_x * large_window_size + large_window_size], large_window_size)
 
             clusters = clustering.k_means(blocks, 3, 4, True)
-
             reclustered = []
             for cluster in clusters:
                 mergeable_clusters = [clustering.Cluster(blocks[i], [i]) for i in cluster.indices]
                 reclustered.extend(adaptive_clustering.clustering(mergeable_clusters, clustering_threshold))
 
             for cluster in reclustered:
-                Am = np.stack([blocks[i] for i in cluster.indices])
+                Am = np.stack(blocks[cluster.indices])
                 (Na, C) = Am.shape
                 U, S, Vh = np.linalg.svd(Am)
 
@@ -112,35 +110,57 @@ def denoise(image):
     W = GAT.anacombetransform.inv_anacombe(reconstructed_image)
     return W
 
-def denoise_full(image):
+def denoise_full(image_tuple):
+    """Calculate PRNU noise residue.
+    Takes in a tuple (i, image) where i is an int, image is an image saved as a [y,x,3]-shaped np array.
+    Then returns a tuple (i, image, residue), where residue is the extracted noise."""
+
+    i, image = image_tuple
     residue = np.empty_like(image)
 
     for channel in range(3):
+        print(f"Processing channel {channel} of image {i}.")
         residue[:,:,channel] = image[:,:,channel] - denoise(image[:,:,channel])
 
     residue_ZM = zero_mean(residue)
     residue_ZM_RD = remove_diagonal(residue_ZM)
-    return (image, residue_ZM_RD)
+    return (i, image, residue_ZM_RD)
 
 
-def find_fingerprint(images):
+def extract_residues(images, outpath, multithreaded = True):
     top = np.zeros_like(images[0], dtype='float64')
     bottom = np.zeros_like(images[0], dtype='float64')
 
-    with Pool(thread_count) as p:
-        for (image, residue) in p.imap_unordered(denoise_full, images):
-            top += np.multiply(image, residue)
-            bottom += np.multiply(image, image)
-
-    # for (image, residue) in map(denoise_full, images):
-    #     top += np.multiply(image, residue)
-    #     bottom += np.multiply(image, image) # Bottom can be zero, what then?
+    if multithreaded:
+        with Pool(min(max_thread_count, len(images))) as p:
+            for (i, image, residue) in p.imap_unordered(denoise_full, enumerate(images)):
+                if isinstance(outpath, str):
+                    usepath = outpath + f'{i}.npy'
+                else:
+                    usepath = outpath[i]
+                with open( usepath, 'wb') as f:
+                    np.save(f, residue)
+    else:
+        for (i, image, residue) in map(denoise_full, enumerate(images)):
+            if isinstance(outpath, str):
+                usepath = outpath + f'{i}.npy'
+            else:
+                usepath = outpath[i]
+            with open( usepath, 'wb') as f:
+                np.save(f, residue)
     
+
+def find_fingerprint(images, residues):
+    top = np.zeros_like(images[0], dtype='float64')
+    bottom = np.zeros_like(images[0], dtype='float64')
+    assert len(images) == len(residues)
+    for i in range(len(images)):
+            top += np.multiply(images[i], residues[i])
+            bottom += np.multiply(images[i], images[i])
+
     K = np.divide(top, bottom, out=np.zeros_like(top), where=(bottom!=0))
     fingerprint = np.sum(np.multiply(K, image) for image in images) / len(images)
-    # save_image(fingerprint + 128)
     return fingerprint
-    # for i, image in enumerate(images):
 
 def normalizing_factor(fingerprint, residue):
     #TODO: figure this out
@@ -148,7 +168,9 @@ def normalizing_factor(fingerprint, residue):
 
 def test_fingerprint_SPE(fingerprint, residue):
     # How to determine omega
-    return peak_correlation_energy(fingerprint, residue, [(0,0)])
+    # Just assume a 7x7 region around centerpoint
+    Omega = [(a, b) for a in range(-3, 4) for b in range(-3, 4)]
+    return peak_correlation_energy(fingerprint, residue, Omega)
 
 def test_fingerprint_SPCE(fingerprint, residue):
     return signed_peak_correlation_energy(fingerprint, residue, [(0,0)])
