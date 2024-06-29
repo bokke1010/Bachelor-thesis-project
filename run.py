@@ -3,6 +3,7 @@ import os
 import numpy as np
 import sys
 import os
+import re
 from tools.np_imageload import load_image, save_image, save_image_grayscale
 
 def run(mode, args):    
@@ -69,18 +70,26 @@ run.py Match [image_path] [fingerprint_path]
         # if not os.path.isfile(fingerprint):
         #     print("Given output path is not a valid filepath.")
 
-        images = []
-        residues = []
+        image_pairs = []
+        residue_pairs = []
         with os.scandir(image_path) as it:
             for entry in it:
                 if entry.is_file and entry.name.endswith(image_extension):
-                    images.append(load_image(entry.path))
+                    image_digit = int(re.search(r'(\d+)\D*$', entry.name).group(1))
+                    image_pairs.append((image_digit, load_image(entry.path)))
+
 
         with os.scandir(residue_path) as it:
             for entry in it:
                 if entry.is_file and entry.name.endswith(".npy"):
                     with open(entry.path, "rb") as f:
-                        residues.append(np.load(f))
+                        residue_digit = int(re.search(r'(\d+)\D*$', entry.name).group(1))
+                        residue_pairs.append((residue_digit, np.load(f)))
+
+        images = [a[1] for a in sorted(image_pairs)]
+        residues = [a[1] for a in sorted(residue_pairs)]
+
+        assert len(images) == len(residues)
 
         fingerprint = main.find_fingerprint(images, residues)
 
@@ -102,8 +111,6 @@ run.py Match [image_path] [fingerprint_path]
         with open(fingerprint_path, 'rb') as f:
             fingerprint = np.load(f)
 
-
-
         residue = None
         if image_path.endswith(".npy"):
             with open(image_path, "rb") as f:
@@ -111,6 +118,7 @@ run.py Match [image_path] [fingerprint_path]
         else:
             image = load_image(image_path)
             (residue, _) = main.denoise_full((0, image))
+        # print("Fingerprint:", fingerprint, "Residue:", residue, sep='\n')
         corr = main.test_fingerprint_SPE(fingerprint, residue)
         print(corr)
     else:
