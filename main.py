@@ -1,14 +1,23 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# The main code script for this project.
+# Contains a number of functions essential for the functionality
+# exposed in run.py, and utilizes most of the tools in this
+# project to achieve that functionality.
+
 import GAT.anacombetransform
 from Adaptive_PCA import vectorize, clustering, adaptive_clustering
 from Wiener_filter import lpaici, wiener_filter
 from Zero_mean.zero_mean import zero_mean
-from tools.stat import crosscorr
 from Correlation.correlationenergy import peak_correlation_energy, signed_peak_correlation_energy
 from Remove_diagonal.wavelet import remove_diagonal
 from multiprocessing import Pool
 
 import numpy as np
 
+# Large window size must be even, and neatly divide both the
+# horizontal and vertical resolution of the images.
 large_window_size = 252
 window_size = 8
 window_stride = 2
@@ -45,20 +54,19 @@ peak_size = 3
 
 
 def denoise(image):
-    # Expand image 8 pixels somehow?
-
+    """Performs the main denoising step, including the GAT, clustering steps,
+    PCA filtering and suboptimal Wiener filter.
+    This operation works on a 2d array, so one color channel at the time."""
     Image_v = GAT.anacombetransform.anacombe(image)
 
     v_windows, h_windows = Image_v.shape
     v_windows = (v_windows + large_window_size - 1) // large_window_size
     h_windows = (h_windows + large_window_size - 1) // large_window_size
-    # Make 128x128 non-overlapping windows
-    # make 8x8 stride 2 windows
-    # Vectorize overlapping blocks
 
     reconstructed_image = np.zeros_like(Image_v)
     image_counts = np.zeros_like(Image_v)
 
+    # Make 128x128 non-overlapping windows
     for base_x in range(h_windows):
         for base_y in range(v_windows):
             print(f"Processing large window x: {base_x+1}/{h_windows}, y: {base_y+1}/{v_windows}")
@@ -86,7 +94,6 @@ def denoise(image):
                     if xi[i] < mu * xi_r:
                         break
                     dominant_dimentions += 1
-                # dominant_dimentions = sum(xi[k] > mu * xi_r for k in range(min(C,Na)))
 
                 extracted_coefficients = xi[:dominant_dimentions]
 
@@ -100,7 +107,6 @@ def denoise(image):
                     block_index = cluster.indices[column]
                     block = Ar[column].reshape((window_size,window_size))
                     blockcount = (large_window_size - window_size + window_stride) // window_stride
-                    # i = (y * blockcount + x) // window_stride
 
                     block_y_start = block_index // blockcount
                     block_x_start = block_index % blockcount
@@ -118,7 +124,10 @@ def denoise(image):
 def denoise_full(image_tuple):
     """Calculate PRNU noise residue.
     Takes in a tuple (i, image) where i is an int, image is an image saved as a [y,x,3]-shaped np array.
-    Then returns a tuple (i, image, residue), where residue is the extracted noise."""
+    Then returns a tuple (i, image, residue), where residue is the extracted noise.
+    This operation applies both the primary denoising algorithm, as well as two improvement steps,
+    to all 3 channels of an image.
+    As a result, this function can take a couple hours for larger images."""
 
     i, image = image_tuple
     residue = np.empty_like(image)

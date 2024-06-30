@@ -1,3 +1,10 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# The main script to utilize the functionality within the other scripts.
+# Can be used to extract PRNU noise, calculate fingerprints and match
+# multiple PRNU noise residues against a fingerprint.
+
 import main
 import os
 import numpy as np

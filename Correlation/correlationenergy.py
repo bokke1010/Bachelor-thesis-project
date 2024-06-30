@@ -1,3 +1,15 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# This file contains a borrowed efficient circular cross
+# correlation function.
+# The original naive function has been removed, as it was
+# far too slow for practical use.
+# It also contains the PCE and SPCE functions, which calculate
+# the (signed) peak-to-correlation energy between two images.
+# It is likely that these functions contain some errors or are lacking
+# some constants.
+
 import numpy as np
 from numpy.fft import fft, ifft, fft2, ifft2, ifftshift
 

@@ -1,3 +1,8 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# This file contains a simple zero-mean function, which subtracts the column and row
+# average from each column and row respectively.
 
 def zero_mean(image):
     """Subtracts the column average from each column, then the row average from each row."""
