@@ -1,3 +1,8 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# A simple demo script to demonstrate the 2d discrete wavelet transform.
+
 import numpy as np
 import pywt
 

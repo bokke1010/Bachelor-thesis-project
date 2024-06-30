@@ -1,3 +1,10 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# Takes the results from a residue fingerprint match through run.py
+# formatted into a csv file and plots and prints a number of
+# simple statistics based on that data.
+
 import csv
 import matplotlib.pyplot as plt
 

@@ -1,5 +1,14 @@
 This project is the python code for my bachelor's thesis mathematics & computer science
 
+Requirements:
+
+- Python 3.6+
+- Standard python libraries, including os, sys and multiprocessing.
+- Numpy
+- Matplotlib
+- PyWavelets
+- Some parts of the code require SciPy, but this is not used in the normal workflow.
+
 How to run:
 Find a source of images and a test image, all of the same resolution.
 This PRNU comparison is not scale or translation invariant, so cropping different parts of the image does not result in functional results.
@@ -9,8 +18,11 @@ Estimate the standard deviation of the white (Gaussian) noise component of these
 Then, utilize run.py first in extract mode to extract the PRNU noise of every image.
 The syntax is as follows:
 run.py Extract [image_folder] [extension] [residue_output_folder]
-Will extract the noise residue from all files in image folder and place them into identically named .npy files in residue output folder.
-Only images that end with extension will be used.
+Will extract the noise residue from all files that end with [extension] in image folder and place them into
+identically named .npy files in residue output folder.
+By default Extract will spawn multiple processes to speed up extraction.
+Set the max_thread_count value in main.py to a value that is at least a little
+lower than the logical thread count of your device.
 
 Then compile the fingerprint of all images from the same sensor by using:
 run.py Fingerprint [image_folder] [extension] [residue_folder] [fingerprint_path]

@@ -1,5 +1,10 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# Contains a simple demo for a gaussian filter though
+# the generalized Anscombe transform
+
 import GAT.anacombetransform
-from Adaptive_PCA import vectorize, clustering, adaptive_clustering
 
 from PIL import Image
 import numpy as np

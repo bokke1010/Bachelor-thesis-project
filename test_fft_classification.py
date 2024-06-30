@@ -1,3 +1,10 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# A simple test for the fft-based circular cross correlation
+# and it's use within this project.
+# No longer relevant.
+
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.fft import fft, ifft, fft2, ifft2, ifftshift

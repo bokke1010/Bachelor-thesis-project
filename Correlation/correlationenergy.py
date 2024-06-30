@@ -32,10 +32,11 @@ def circular_cross_correlation_2d(W, R, c):
     two 2d arrays containing 3 color channels."""
     return cross_correlate_2d(W[:,:,c], R[:,:,c])
 
-    # return np.sum(np.multiply(W, np.roll(R, (x, y), axis=(0,1)))) / np.prod(n)
-
-
 def peak_correlation_energy(W, R, peak_size, c):
+    """Returns the peak correlation energy between two (n,m,c)
+    sized images in the c-th channel.
+    The peak size is a radius, any offsets within this euclidean
+    distance are considered in the peak."""
     n, nc = W.shape, R.shape
     assert n == nc
     ccc = circular_cross_correlation_2d(W, R, c)
@@ -53,6 +54,10 @@ def peak_correlation_energy(W, R, peak_size, c):
     return top * top / bottom
 
 def signed_peak_correlation_energy(W, R, peak_size, c):
+    """Returns the signed peak correlation energy between
+    two (n,m,c) sized images in the c-th channel.
+    The peak size is a radius, any offsets within this euclidean
+    distance are considered in the peak."""
     n, nc = W.shape, R.shape
     assert n == nc
     ccc = circular_cross_correlation_2d(W, R, c)
