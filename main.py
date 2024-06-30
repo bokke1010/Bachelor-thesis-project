@@ -12,7 +12,7 @@ import numpy as np
 large_window_size = 252
 window_size = 8
 window_stride = 2
-max_thread_count = 13
+max_thread_count = 12
 
 # I = Poisson(real_I) + N(0, sigma)
 # Estimated image normal noise deviation
@@ -38,6 +38,11 @@ lpaici.tau = tau
 coefficients_sigma = 0.8
 lpaici.sigma = coefficients_sigma
 wiener_filter.sigma = coefficients_sigma
+
+# Size of the peak for calculating PCE and SPCE.
+# Uses euclidean distance
+peak_size = 3
+
 
 def denoise(image):
     # Expand image 8 pixels somehow?
@@ -162,15 +167,14 @@ def find_fingerprint(images, residues):
     fingerprint = np.sum(np.multiply(K, image) for image in images) / len(images)
     return fingerprint
 
-def normalizing_factor(fingerprint, residue):
-    #TODO: figure this out
-    pass
+def test_fingerprint_PCE_multiple(fingerprint, residues, names):
+    """Compare a series of residues against the fingerprint."""
+    assert len(residues) == len(names)
+    for (residue, name) in zip(residues, names):
+        print(f"Image {name} has a PCE of {peak_correlation_energy(residue, fingerprint, peak_size, 0)}, {peak_correlation_energy(residue, fingerprint, peak_size, 1)}, {peak_correlation_energy(residue, fingerprint, peak_size, 2)}")
 
-def test_fingerprint_SPE(fingerprint, residue):
-    # How to determine omega
-    # Just assume a 7x7 region around centerpoint
-    Omega = [(a, b) for a in range(-3, 4) for b in range(-3, 4)]
-    return peak_correlation_energy(fingerprint, residue, Omega)
-
-def test_fingerprint_SPCE(fingerprint, residue):
-    return signed_peak_correlation_energy(fingerprint, residue, [(0,0)])
+def test_fingerprint_SPCE_multiple(fingerprint, residues, names):
+    """Compare a series of residues against the fingerprint."""
+    assert len(residues) == len(names)
+    for (residue, name) in zip(residues, names):
+        print(f"Image {name} has a SPCE of {signed_peak_correlation_energy(residue, fingerprint, peak_size, 0)}, {signed_peak_correlation_energy(residue, fingerprint, peak_size, 1)}, {signed_peak_correlation_energy(residue, fingerprint, peak_size, 2)}")

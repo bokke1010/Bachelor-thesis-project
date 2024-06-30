@@ -1,3 +1,5 @@
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -18,8 +20,8 @@ frac = np.fft.fftfreq(6*res)
 N = 160 # Shows only a tenth of the theoretical resolution
 plt.subplot(2,2,3)
 plt.plot(2 * res * frac[:N], np.abs(sp[:N]))
-plt.xlabel("Frequency")
-plt.ylabel("Magnitude")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Absolute frequency magnitude")
 
 # Dynamic frequency
 
@@ -39,8 +41,8 @@ frac = np.fft.fftfreq(6*res)
 N = 160 # Shows only a tenth of the theoretical resolution
 plt.subplot(2,2,4)
 plt.plot(2 * res * frac[:N],np.abs(sp[:N]))
-plt.xlabel("Frequency")
-plt.ylabel("Magnitude")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Absolute frequency magnitude")
 
-plt.suptitle("The fourier transform for stationary and time-dependant signals.")
+plt.suptitle("The Fourier transform for stationary and time-dependant signals.")
 plt.show()

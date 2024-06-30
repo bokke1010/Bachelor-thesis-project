@@ -96,31 +96,28 @@ run.py Match [image_path] [fingerprint_path]
         with open(fingerprint_path, "wb") as f:
             fingerprint = np.save(f, fingerprint)
 
-
-        # main.find_fingerprint(images=, residues=)
-
     elif mode == "Match":
         if len(args) < 2:
-            print("Match mode must have an image path and fingerprint path argument.")
+            print("Match mode must have a residue folder path and fingerprint path argument.")
             return
 
-        image_path = args[0]
+        residue_path = args[0]
         fingerprint_path = args[1]
 
         fingerprint = None
         with open(fingerprint_path, 'rb') as f:
             fingerprint = np.load(f)
 
-        residue = None
-        if image_path.endswith(".npy"):
-            with open(image_path, "rb") as f:
-                residue = np.load(f)
-        else:
-            image = load_image(image_path)
-            (residue, _) = main.denoise_full((0, image))
-        # print("Fingerprint:", fingerprint, "Residue:", residue, sep='\n')
-        corr = main.test_fingerprint_SPE(fingerprint, residue)
-        print(corr)
+        residues, names = [], []
+
+        with os.scandir(residue_path) as it:
+            for entry in it:
+                if entry.is_file and entry.name.endswith(".npy"):
+                    with open(entry.path, "rb") as f:
+                        residues.append(np.load(f))
+                        names.append(entry.name)
+
+        main.test_fingerprint_SPCE_multiple(fingerprint, residues, names)
     else:
         print("mode must be one of \"Help\", \"Extract\", \"Fingerprint\" or \"Match\".")
 
