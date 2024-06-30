@@ -2,6 +2,8 @@ from random import sample
 import numpy as np
 
 class Cluster:
+    """A simple cluster representation class.
+    Has a center and an array of indices, referencing vectors in the vectorized block."""
     center = None
     def __init__(self, center, indices = []):
         self.center = center
@@ -15,7 +17,8 @@ class Cluster:
         # self.indices.extend(other.indices)
 
 def k_means(vectors, k, n, ret_clusters=False):
-    # new sum, count, old avg
+    """Run the naive k-means clustering algorithm on the given vectors.
+    returns only the means if ret_clusters = False, otherwise an array of clusters."""
     vlen = vectors.shape[1]
     means = vectors[np.random.choice(vectors.shape[0], k, replace=False), :]
     data = np.zeros(shape=(k, vlen))

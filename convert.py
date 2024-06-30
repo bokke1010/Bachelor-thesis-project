@@ -1,3 +1,9 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# Converts all image files in a folder to the given resolution.
+# Usage: python convert.py [image folder path] [new x] [new y] [extension, default = '.JPG']
+
 import os, sys
 from PIL import Image
 

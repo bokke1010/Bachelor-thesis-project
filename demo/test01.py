@@ -1,3 +1,10 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# A simple test for the naive k-means clustering algorithm.
+# Hasn't been run in a long time, not sure if it still works.
+# Needs to be moved to the project root for execution due to imports.
+
 import Adaptive_PCA.clustering as cl
 from random import random
 from scipy.spatial import Voronoi, voronoi_plot_2d

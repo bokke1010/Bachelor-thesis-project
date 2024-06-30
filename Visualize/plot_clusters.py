@@ -1,3 +1,9 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# A number of functions to plot a few of the
+# intermediate representations of clusters
+# in main.denoise.
 
 from matplotlib import pyplot as plt
 

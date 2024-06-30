@@ -8,7 +8,7 @@
 
 import GAT.anacombetransform
 from Adaptive_PCA import vectorize, clustering, adaptive_clustering
-from Wiener_filter import lpaici, wiener_filter
+from Wiener_filter import lpa_ici, wiener_filter
 from Zero_mean.zero_mean import zero_mean
 from Correlation.correlationenergy import peak_correlation_energy, signed_peak_correlation_energy
 from Remove_diagonal.wavelet import remove_diagonal
@@ -41,11 +41,11 @@ adaptive_clustering.kappa = 0.7
 
 # Confidence interval theshold parameter
 tau = 0.6
-lpaici.tau = tau
+lpa_ici.tau = tau
 
 # These are the same sigma, and separate from the image model sigma
 coefficients_sigma = 0.8
-lpaici.sigma = coefficients_sigma
+lpa_ici.sigma = coefficients_sigma
 wiener_filter.sigma = coefficients_sigma
 
 # Size of the peak for calculating PCE and SPCE.

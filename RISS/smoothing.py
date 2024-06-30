@@ -1,7 +1,13 @@
+# Project : Bachelor thesis Mathematics & Computer science
+# Author  : Bokke v.d. Bergh
+# Contents:
+# Some preparations for an eventual RISS implementation.
+
 import numpy as np
 from Visualize.show_image import show_image
 
 def RISS(image):
+    """Dummy implementation, does nothing useful."""
     print(np.std(np.real(image)))
     freqdom = np.fft.fft2(image, axes=(0,1))
     
