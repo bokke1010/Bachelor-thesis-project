@@ -6,21 +6,35 @@
 # stride 2
 
 import numpy as np
+from globals import window_size, window_stride, large_window_size
 
-small_window_size = 8
 
 # M = sum sigma_i u_i v_i*
 # v* is the conjugate transpose
 def vectorize(large_window: np.array, large_window_size):
-    # A_M is a C times N_A sized matrix, where C is small_window_size squared
+    # A_M is a C times N_A sized matrix, where C is window_size squared
     # and N_A is the number of individuals small windows in cluster A
-    blockcount = (large_window_size - small_window_size + 2) // 2
-    blocks = np.empty((blockcount**2, small_window_size**2))
-    for y in range(0, large_window_size - small_window_size + 1, 2):
-        for x in range(0, large_window_size - small_window_size + 1, 2):
-            window = large_window[y:y+small_window_size,x:x+small_window_size]
+    blockcount = (large_window_size - window_size + 2) // 2
+    blocks = np.empty((blockcount**2, window_size**2))
+    for y in range(0, large_window_size - window_size + 1, 2):
+        for x in range(0, large_window_size - window_size + 1, 2):
+            window = large_window[y:y+window_size,x:x+window_size]
             i = (y * blockcount + x) // 2
             blocks[i] = window.flatten()
     return blocks
 
 
+def devectorize(size, position_reference, matrix):
+    reconstructed_image = np.zeros((large_window_size, large_window_size))
+    image_counts = np.zeros((large_window_size, large_window_size))
+    for column in range(size):
+        block_index = position_reference.indices[column]
+        block = matrix[column].reshape((window_size,window_size))
+        block_count = (large_window_size - window_size + window_stride) // window_stride
+
+        block_x_index, block_y_index = block_index % block_count, block_index // block_count
+        block_x_offset, block_y_offset = block_x_index * window_stride, block_y_index * window_stride
+
+        reconstructed_image[block_y_offset : block_y_offset + window_size, block_x_offset : block_x_offset + window_size] += block
+        image_counts[block_y_offset : block_y_offset + window_size, block_x_offset : block_x_offset + window_size] += 1
+    return (reconstructed_image, image_counts)

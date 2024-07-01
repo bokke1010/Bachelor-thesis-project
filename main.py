@@ -7,51 +7,16 @@
 # project to achieve that functionality.
 
 import GAT.anacombetransform
-from Adaptive_PCA import vectorize, clustering, adaptive_clustering
+from Adaptive_PCA import vectorize, devectorize, clustering, adaptive_clustering
 from Wiener_filter import lpa_ici, wiener_filter
 from Zero_mean.zero_mean import zero_mean
 from Correlation.correlationenergy import peak_correlation_energy, signed_peak_correlation_energy
 from Remove_diagonal.wavelet import remove_diagonal
+
+from globals import large_window_size, mu, max_thread_count, coefficients_sigma, peak_size
+
 from multiprocessing import Pool
-
 import numpy as np
-
-# Large window size must be even, and neatly divide both the
-# horizontal and vertical resolution of the images.
-large_window_size = 252
-window_size = 8
-window_stride = 2
-max_thread_count = 12
-
-# I = Poisson(real_I) + N(0, sigma)
-# Estimated image normal noise deviation
-sigma = 2
-GAT.anacombetransform.sigma = sigma
-
-# The largest allowed distance between clusters for them to be merged.
-clustering_threshold = 320
-
-# Noise dimention threshold multiplier used in determining
-# dominant dimensions for PCA filtering.
-mu = 1.1
-
-# Adaptive clustering coefficients to more
-# easily cluster large clusters together.
-adaptive_clustering.kappa = 0.7
-
-# Confidence interval theshold parameter
-tau = 0.6
-lpa_ici.tau = tau
-
-# These are the same sigma, and separate from the image model sigma
-coefficients_sigma = 0.8
-lpa_ici.sigma = coefficients_sigma
-wiener_filter.sigma = coefficients_sigma
-
-# Size of the peak for calculating PCE and SPCE.
-# Uses euclidean distance
-peak_size = 3
-
 
 def denoise(image):
     """Performs the main denoising step, including the GAT, clustering steps,
@@ -77,7 +42,7 @@ def denoise(image):
             reclustered = []
             for cluster in clusters:
                 mergeable_clusters = [clustering.Cluster(blocks[i], [i]) for i in cluster.indices]
-                reclustered.extend(adaptive_clustering.clustering(mergeable_clusters, clustering_threshold))
+                reclustered.extend(adaptive_clustering.clustering(mergeable_clusters))
 
             for cluster in reclustered:
                 Am = np.stack(blocks[cluster.indices])
@@ -103,17 +68,15 @@ def denoise(image):
                 # Recompose matrix.
                 Ar = np.dot(U[:,:dominant_dimentions] * Ns, Vh[:dominant_dimentions,:])
 
-                for column in range(Na):
-                    block_index = cluster.indices[column]
-                    block = Ar[column].reshape((window_size,window_size))
-                    blockcount = (large_window_size - window_size + window_stride) // window_stride
+                # reconstruct the small window, add it to the reconstructed image.
+                large_window_recon, large_window_samples = devectorize(Na, cluster, Ar)
 
-                    block_y_start = block_index // blockcount
-                    block_x_start = block_index % blockcount
-                    global_x_start = base_x * large_window_size + block_x_start * window_stride
-                    global_y_start = base_y * large_window_size + block_y_start * window_stride
-                    reconstructed_image[global_y_start : global_y_start + window_size, global_x_start : global_x_start + window_size] += block
-                    image_counts[global_y_start : global_y_start + window_size, global_x_start : global_x_start + window_size] += 1
+                global_x_start = base_x * large_window_size
+                global_y_start = base_y * large_window_size
+
+                reconstructed_image[global_y_start : global_y_start + large_window_size, global_x_start : global_x_start + large_window_size] += large_window_recon
+                image_counts[global_y_start : global_y_start + large_window_size, global_x_start : global_x_start + large_window_size] += large_window_samples
+
 
 
     reconstructed_image = reconstructed_image / image_counts
@@ -182,10 +145,16 @@ def test_fingerprint_PCE_multiple(fingerprint, residues, names):
     """Compare a series of residues against the fingerprint."""
     assert len(residues) == len(names)
     for (residue, name) in zip(residues, names):
-        print(f"Image {name} has a PCE of {peak_correlation_energy(residue, fingerprint, peak_size, 0)}, {peak_correlation_energy(residue, fingerprint, peak_size, 1)}, {peak_correlation_energy(residue, fingerprint, peak_size, 2)}")
+        pce_red = peak_correlation_energy(residue, fingerprint, peak_size, 0)
+        pce_green = peak_correlation_energy(residue, fingerprint, peak_size, 1)
+        pce_blue = peak_correlation_energy(residue, fingerprint, peak_size, 2)
+        print(f"Image {name} has a PCE of {pce_red}, {pce_green}, {pce_blue}")
 
 def test_fingerprint_SPCE_multiple(fingerprint, residues, names):
     """Compare a series of residues against the fingerprint."""
     assert len(residues) == len(names)
     for (residue, name) in zip(residues, names):
-        print(f"Image {name} has a SPCE of {signed_peak_correlation_energy(residue, fingerprint, peak_size, 0)}, {signed_peak_correlation_energy(residue, fingerprint, peak_size, 1)}, {signed_peak_correlation_energy(residue, fingerprint, peak_size, 2)}")
+        spce_red = signed_peak_correlation_energy(residue, fingerprint, peak_size, 0)
+        spce_green = signed_peak_correlation_energy(residue, fingerprint, peak_size, 1)
+        spce_blue = signed_peak_correlation_energy(residue, fingerprint, peak_size, 2)
+        print(f"Image {name} has a SPCE of {spce_red}, {spce_green}, {spce_blue}")

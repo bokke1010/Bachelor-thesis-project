@@ -6,10 +6,7 @@
 
 import numpy as np
 
-# These should be set to appropiate values by whatever script imports this script
-# In retrospect, I'm very suprised if this works as intended.
-tau = 0
-sigma = 0
+from globals import tau, sigma
 
 def construct_window(x, h, data):
     """Sets up a simple window around x, not exceeding the given bounds."""

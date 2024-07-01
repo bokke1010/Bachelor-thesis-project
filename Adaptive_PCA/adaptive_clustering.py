@@ -4,10 +4,11 @@
 # An adaptive clustering algorithm that considers all pairs of clusters.
 
 from Adaptive_PCA.clustering import Cluster
+from globals import kappa, clustering_threshold
 import numpy as np
 
-kappa = 0.7
 kapfac = 1 / kappa
+
 def distance(A, B):
     """Adaptive distance function between two clusters.
     Distance is inflated if both clusters are already large."""
@@ -15,7 +16,7 @@ def distance(A, B):
     return base_distance * kapfac if min(len(A.indices), len(B.indices)) > 200 else base_distance 
 
 
-def clustering(clusters, threshold = 100):
+def clustering(clusters, threshold = clustering_threshold):
     """Compares the distance between every pair of clusters, merging
     pairs that fall below the threshold."""
     a, b = 0, 1

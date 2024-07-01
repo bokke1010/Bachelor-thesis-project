@@ -6,14 +6,16 @@
 # and standard deviation σ
 
 import numpy as np
+from globals import sigma
+
 
 gain = 1
 scale = 0.375
-stdev = 0
+variance = sigma**2
 
 def anacombe(I):
-    im = gain * I + scale * gain * gain + stdev
+    im = gain * I + scale * gain * gain + variance
     return 2.0 * np.sqrt(np.maximum(0.0, im)) / gain
 
 def inv_anacombe(Ivd):
-    return 0.25 * Ivd * Ivd + (0.25 - (1.375 + 0.625 * np.sqrt(3.0/2.0) / Ivd) / Ivd) / Ivd - 0.125 - stdev * stdev
+    return 0.25 * Ivd * Ivd + (0.25 - (1.375 + 0.625 * np.sqrt(3.0/2.0) / Ivd) / Ivd) / Ivd - 0.125 - variance
