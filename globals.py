@@ -27,6 +27,8 @@ tau = 0.6
 # Singular value based coefficient noise deviation
 coefficients_sigma = 0.8
 
+# Attenuation coefficient to prioritize texture data
+beta = 0.7
 
 # Size of the peak for calculating PCE and SPCE.
 # Uses euclidean distance

@@ -8,21 +8,21 @@
 import numpy as np
 from Wiener_filter import lpa_ici
 
-sigma = 0
+from globals import coefficients_sigma, beta
+variance = coefficients_sigma * coefficients_sigma
 
 def auto_covariance(x, h, data):
     window = lpa_ici.construct_window(x, h, data)
     return np.sum(data[window]**2) / len(window)
 
-def max_attenuation(sigma, Rx, beta = 0.7):
+def max_attenuation(Rx, beta = beta):
     """Determine which attenuation value (within (0,1)) maximizes the cost function."""
     # Find attenuation in [0, 1] so that
     def costfunction(atten):
-        sq = sigma**2
-        g0 = sq / Rx
+        g0 = variance / Rx
         # hs = 1 - atten * g0
         gRg = g0**2 * Rx
-        return (sq + gRg - 2 * sq * g0) / (sq + atten**2 * gRg - 2 * atten * sq * g0) - beta * atten**2
+        return (variance + gRg - 2 * variance * g0) / (variance + atten**2 * gRg - 2 * atten * variance * g0) - beta * atten**2
 
     # This algorithm isn't great, but it'll work
     # It also isn't a bottleneck.
@@ -41,8 +41,8 @@ def wiener_filter(data):
         bandwidth = lpa_ici.intersection_of_intervals(x, data)
         Rx = auto_covariance(x, bandwidth, data)
 
-        attenuation = max_attenuation(sigma, Rx)
-        hs = 1 - attenuation * sigma * sigma / Rx
+        attenuation = max_attenuation(Rx)
+        hs = 1 - attenuation * variance / Rx
 
         filtered_data[x] = hs * data[x]
     return filtered_data

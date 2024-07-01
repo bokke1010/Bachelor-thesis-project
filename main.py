@@ -71,11 +71,11 @@ def denoise(image):
                 # reconstruct the small window, add it to the reconstructed image.
                 large_window_recon, large_window_samples = devectorize(Na, cluster, Ar)
 
-                global_x_start = base_x * large_window_size
-                global_y_start = base_y * large_window_size
+                global_x_start, global_y_start = base_x * large_window_size, base_y * large_window_size
+                global_x_end, global_y_end = global_x_start + large_window_size, global_y_start + large_window_size
 
-                reconstructed_image[global_y_start : global_y_start + large_window_size, global_x_start : global_x_start + large_window_size] += large_window_recon
-                image_counts[global_y_start : global_y_start + large_window_size, global_x_start : global_x_start + large_window_size] += large_window_samples
+                reconstructed_image[global_y_start : global_y_end, global_x_start : global_x_end] += large_window_recon
+                image_counts[global_y_start : global_y_end, global_x_start : global_x_end] += large_window_samples
 
 
 
