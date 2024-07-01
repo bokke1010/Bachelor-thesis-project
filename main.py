@@ -142,12 +142,12 @@ def denoise_full(image_tuple):
 
 
 def extract_residues(images, outpath, multithreaded = True):
-    top = np.zeros_like(images[0], dtype='float64')
-    bottom = np.zeros_like(images[0], dtype='float64')
+    """Extracts the PRNU residue of a large number of images
+    in separate processes."""
 
     if multithreaded:
         with Pool(min(max_thread_count, len(images))) as p:
-            for (i, image, residue) in p.imap_unordered(denoise_full, enumerate(images)):
+            for (i, _, residue) in p.imap_unordered(denoise_full, enumerate(_s)):
                 if isinstance(outpath, str):
                     usepath = outpath + f'{i}.npy'
                 else:
@@ -155,7 +155,7 @@ def extract_residues(images, outpath, multithreaded = True):
                 with open( usepath, 'wb') as f:
                     np.save(f, residue)
     else:
-        for (i, image, residue) in map(denoise_full, enumerate(images)):
+        for (i, _, residue) in map(denoise_full, enumerate(images)):
             if isinstance(outpath, str):
                 usepath = outpath + f'{i}.npy'
             else:
@@ -165,6 +165,8 @@ def extract_residues(images, outpath, multithreaded = True):
     
 
 def find_fingerprint(images, residues):
+    """Calculates the image fingerprint when given a large number
+    of images and their corresponding PRNU noise residues."""
     top = np.zeros_like(images[0], dtype='float64')
     bottom = np.zeros_like(images[0], dtype='float64')
     assert len(images) == len(residues)
