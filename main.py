@@ -147,7 +147,7 @@ def extract_residues(images, outpath, multithreaded = True):
 
     if multithreaded:
         with Pool(min(max_thread_count, len(images))) as p:
-            for (i, _, residue) in p.imap_unordered(denoise_full, enumerate(_s)):
+            for (i, _, residue) in p.imap_unordered(denoise_full, enumerate(images)):
                 if isinstance(outpath, str):
                     usepath = outpath + f'{i}.npy'
                 else:
