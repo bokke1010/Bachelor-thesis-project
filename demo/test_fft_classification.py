@@ -15,7 +15,7 @@ def cross_correlate_2d(x, h):
     h = ifftshift(ifftshift(h, axes=0), axes=1)
     return ifft2(fft2(x) * np.conj(fft2(h))).real
 
-# load image as greyscale
+# load image as grayscale
 
 fingerprint = None
 with open("fingerprinti8p.npy", 'rb') as f:

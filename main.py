@@ -6,8 +6,8 @@
 # exposed in run.py, and utilizes most of the tools in this
 # project to achieve that functionality.
 
-import GAT.anacombetransform
-from Adaptive_PCA import vectorize, devectorize, clustering, adaptive_clustering
+import GAT.anscombetransform
+from Adaptive_PCA import vectorize, clustering, adaptive_clustering
 from Wiener_filter import lpa_ici, wiener_filter
 from Zero_mean.zero_mean import zero_mean
 from Correlation.correlationenergy import peak_correlation_energy, signed_peak_correlation_energy
@@ -22,7 +22,7 @@ def denoise(image):
     """Performs the main denoising step, including the GAT, clustering steps,
     PCA filtering and suboptimal Wiener filter.
     This operation works on a 2d array, so one color channel at the time."""
-    Image_v = GAT.anacombetransform.anacombe(image)
+    Image_v = GAT.anscombetransform.anscombe(image)
 
     v_windows, h_windows = Image_v.shape
     v_windows = (v_windows + large_window_size - 1) // large_window_size
@@ -69,7 +69,7 @@ def denoise(image):
                 Ar = np.dot(U[:,:dominant_dimentions] * Ns, Vh[:dominant_dimentions,:])
 
                 # reconstruct the small window, add it to the reconstructed image.
-                large_window_recon, large_window_samples = devectorize(Na, cluster, Ar)
+                large_window_recon, large_window_samples = vectorize.devectorize(Na, cluster, Ar)
 
                 global_x_start, global_y_start = base_x * large_window_size, base_y * large_window_size
                 global_x_end, global_y_end = global_x_start + large_window_size, global_y_start + large_window_size
@@ -81,7 +81,7 @@ def denoise(image):
 
     reconstructed_image = reconstructed_image / image_counts
 
-    W = GAT.anacombetransform.inv_anacombe(reconstructed_image)
+    W = GAT.anscombetransform.inv_anscombe(reconstructed_image)
     return W
 
 def denoise_full(image_tuple):

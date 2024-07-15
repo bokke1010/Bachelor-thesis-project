@@ -1,7 +1,7 @@
 
 # Large window size must be even, and neatly divide both the
 # horizontal and vertical resolution of the images.
-large_window_size = 252
+large_window_size = 256
 window_size = 8
 window_stride = 2
 max_thread_count = 12

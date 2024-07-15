@@ -20,6 +20,6 @@ def save_image( npdata, outfilename ) :
     img.save( outfilename )
 
 def save_image_grayscale( npdata, outfilename ):
-    """Saves a (n, m)-shaped numpy array into a greyscale image at outfilename, clipping the data to the range 0 - 255."""
+    """Saves a (n, m)-shaped numpy array into a grayscale image at outfilename, clipping the data to the range 0 - 255."""
     img = Image.fromarray( np.asarray( np.clip(npdata,0,255), dtype="uint8"), "L" )
     img.save( outfilename )

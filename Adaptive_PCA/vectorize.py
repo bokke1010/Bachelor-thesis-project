@@ -25,8 +25,8 @@ def vectorize(large_window: np.array, large_window_size):
 
 
 def devectorize(size, position_reference, matrix):
-    reconstructed_image = np.zeros((large_window_size, large_window_size))
-    image_counts = np.zeros((large_window_size, large_window_size))
+    reconstructed_image = np.zeros((large_window_size, large_window_size), dtype='float64')
+    image_counts = np.zeros((large_window_size, large_window_size), dtype='float64')
     for column in range(size):
         block_index = position_reference.indices[column]
         block = matrix[column].reshape((window_size,window_size))

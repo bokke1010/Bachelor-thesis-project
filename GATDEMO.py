@@ -4,7 +4,7 @@
 # Contains a simple demo for a gaussian filter though
 # the generalized Anscombe transform
 
-import GAT.anacombetransform
+import GAT.anscombetransform
 
 from PIL import Image
 import numpy as np
@@ -25,12 +25,12 @@ sigma = 7
 image = load_image("muis1.jpg")
 red_channel = image[:,:,0] + np.random.normal(0, 50, image.shape[0:2])
 
-GAT.anacombetransform.sigma = sigma
-Image_v = GAT.anacombetransform.anacombe(red_channel)
+GAT.anscombetransform.sigma = sigma
+Image_v = GAT.anscombetransform.anscombe(red_channel)
 
 Image_vd = ndimage.gaussian_filter(Image_v, sigma)
 
-W = GAT.anacombetransform.inv_anacombe(Image_vd)
+W = GAT.anscombetransform.inv_anscombe(Image_vd)
 
 Image_naive = ndimage.gaussian_filter(red_channel, sigma)
 

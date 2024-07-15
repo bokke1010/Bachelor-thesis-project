@@ -7,13 +7,17 @@
 
 import main
 import matplotlib.pyplot as plt
+from tools.np_imageload import load_image
+from multiprocessing import Pool
 
-cat = main.load_image("muis_small.png")
 
-main.large_window_size = 256
+cat = load_image("muis_small.png")
 
-image = main.denoise((0, cat[:,:,0]))
 
-plt.imshow(image / 255.0)
+for i in range(3):
+    cat[:,:,i] = main.denoise(cat[:,:,i])
+
+
+plt.imshow(cat / 255.0)
 plt.show()
 
