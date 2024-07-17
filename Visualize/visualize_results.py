@@ -7,6 +7,7 @@
 
 import csv
 import matplotlib.pyplot as plt
+import sys
 
 def load_results(filename):
     """Reads a CSV file with PCE / SPCE results
@@ -53,7 +54,10 @@ def check_threshold(data, threshold):
         print(f"Camera {name} got {results[name]/(len(data[name]) // 3)} identified correctly.")
 
 if __name__ == "__main__":
-    data = load_results('final_data.csv')
-    plot_results(data)
+    if len(sys.argv) < 2:
+        print("Not enough arguments, aborting.")
+    else:
+        data = load_results(sys.argv[1])
+        plot_results(data)
 
-    check_threshold(data, 3 * 27000)
+        check_threshold(data, 3 * 27000)
