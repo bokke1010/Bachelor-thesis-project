@@ -8,16 +8,11 @@
 import main
 import matplotlib.pyplot as plt
 from tools.np_imageload import load_image
-from multiprocessing import Pool
-
 
 cat = load_image("muis_small.png")
-
 
 for i in range(3):
     cat[:,:,i] = main.denoise(cat[:,:,i])
 
-
 plt.imshow(cat / 255.0)
 plt.show()
-
